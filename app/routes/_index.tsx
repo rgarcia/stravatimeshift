@@ -1,9 +1,32 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
 import { useOptionalUser } from "~/utils";
 
 export const meta: MetaFunction = () => [{ title: "Remix Notes" }];
+
+// loader that redirects apex to www
+export function loader({ request }: LoaderFunctionArgs) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    request.headers.get("host")?.endsWith(".com")
+  ) {
+    const receivedHost: string = request.headers.get("host") ?? "";
+    const canonicalHost: string =
+      process.env.FLY_APP_NAME === "stravatimeshift"
+        ? "www.stravatimeshift.com"
+        : "staging.stravatimeshift.com";
+    if (receivedHost !== canonicalHost) {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: "https://" + canonicalHost,
+        },
+      });
+    }
+  }
+  return null;
+}
 
 export default function Index() {
   const user = useOptionalUser();
