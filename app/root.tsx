@@ -8,7 +8,9 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteError,
 } from "@remix-run/react";
+import { captureRemixErrorBoundaryError } from "@sentry/remix";
 
 import { getUser } from "~/session.server";
 import stylesheet from "~/tailwind.css";
@@ -20,6 +22,12 @@ export const links: LinksFunction = () => [
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({ user: await getUser(request) });
+};
+
+export const ErrorBoundary = () => {
+  const error = useRouteError();
+  captureRemixErrorBoundaryError(error);
+  return <div>Something went wrong</div>;
 };
 
 export default function App() {

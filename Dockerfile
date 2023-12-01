@@ -5,7 +5,7 @@ FROM node:18-bullseye-slim as base
 ENV NODE_ENV production
 
 # Install openssl for Prisma
-RUN apt-get update && apt-get install -y openssl sqlite3
+RUN apt-get update && apt-get install -y ca-certificates openssl sqlite3
 
 # Install all node_modules, including dev dependencies
 FROM base as deps
@@ -35,7 +35,8 @@ ADD prisma .
 RUN npx prisma generate
 
 ADD . .
-RUN npm run build
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
+    SENTRY_AUTH_TOKEN="$(cat /run/secrets/SENTRY_AUTH_TOKEN)" npm run build
 
 # Finally, build the production image with minimal footprint
 FROM base

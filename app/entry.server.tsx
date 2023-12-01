@@ -9,8 +9,18 @@ import { PassThrough } from "node:stream";
 import type { EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
+import * as Sentry from "@sentry/remix";
 import isbot from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
+
+export function handleError(error: unknown, { request }: { request: Request }) {
+  Sentry.captureRemixServerException(error, "remix.server", request);
+}
+
+Sentry.init({
+  dsn: "https://fd1058aa18c9a929cb04274a38820cb1@o4506321455939584.ingest.sentry.io/4506321456136192",
+  tracesSampleRate: 1,
+});
 
 const ABORT_DELAY = 5_000;
 
