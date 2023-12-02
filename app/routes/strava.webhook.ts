@@ -252,6 +252,13 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
 
+  // don't shift activities that are on weekends
+  if (startTimeLocal.getDay() === 0 || startTimeLocal.getDay() === 6) {
+    return new Response("", {
+      status: 200,
+    });
+  }
+
   const elapsedTimeInSeconds = activity.elapsed_time;
   const endTimeLocal = new Date(
     startTimeLocal.getTime() + elapsedTimeInSeconds * 1000,
