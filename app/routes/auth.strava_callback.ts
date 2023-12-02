@@ -7,23 +7,8 @@ import { createUserSession } from "~/session.server";
 
 const athleteSchema = z.object({
   id: z.number(),
-  username: z.string(),
-  resource_state: z.number(),
   firstname: z.string(),
   lastname: z.string(),
-  bio: z.string(),
-  city: z.string(),
-  state: z.string(),
-  country: z.string(),
-  sex: z.string(),
-  premium: z.boolean(),
-  summit: z.boolean(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  badge_type_id: z.number(),
-  weight: z.number(),
-  profile_medium: z.string().url(),
-  profile: z.string().url(),
 });
 
 const tokenSchema = z.object({
