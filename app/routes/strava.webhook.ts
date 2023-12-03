@@ -96,7 +96,7 @@ interface AllStreams {
   altitude?: number[];
   cadence?: number[];
   heartrate?: number[];
-  latlng: number[][];
+  latlng?: number[][];
   power?: number[];
   temp?: number[];
   time: number[];
@@ -111,9 +111,6 @@ function organizeStreamData(
   const heartrate =
     streams.find((s) => s.type === "heartrate")?.data ?? undefined;
   const latlng = streams.find((s) => s.type === "latlng")?.data ?? undefined;
-  if (!latlng) {
-    throw new Error("no latlng stream");
-  }
   const power = streams.find((s) => s.type === "watts")?.data ?? undefined;
   const temp = streams.find((s) => s.type === "temp")?.data ?? undefined;
   const time = streams.find((s) => s.type === "time")?.data ?? undefined;
@@ -325,7 +322,7 @@ export async function action({ request }: ActionFunctionArgs) {
     new Date(activity.start_date),
     adjustmentInSeconds,
   );
-  for (let i = 0; i < streams.latlng.length; i++) {
+  for (let i = 0; i < streams.time.length; i++) {
     /*
     construct a gpx block like this:
   <trkpt lat="-11.6685090" lon="166.9426300">
@@ -341,15 +338,18 @@ export async function action({ request }: ActionFunctionArgs) {
     </extensions>
    </trkpt>
    */
+    const latlng = streams.latlng?.[i];
     const ele = streams.altitude?.[i];
     const time = formatDate(addSeconds(start_date, streams.time[i]));
     const power = streams.power?.[i];
     const temp = streams.temp?.[i];
     const hr = streams.heartrate?.[i];
     const cad = streams.cadence?.[i];
-    file += `   <trkpt lat="${streams.latlng[i][0].toFixed(
-      7,
-    )}" lon="${streams.latlng[i][1].toFixed(7)}">\n`;
+    file += `   <trkpt`;
+    if (latlng != null) {
+      file += ` lat="${latlng[0].toFixed(7)}" lon="${latlng[1].toFixed(7)}"`;
+    }
+    file += `>\n`;
     if (ele != null) {
       file += `    <ele>${ele.toFixed(1)}</ele>\n`;
     }
@@ -382,6 +382,9 @@ export async function action({ request }: ActionFunctionArgs) {
     filename: `${activity.id}-stravatimeshift.gpx`,
     contentType: "application/gpx+xml",
   });
+  if (activity.name === "Afternoon Ride") {
+    activity.name = "Morning Ride";
+  }
   form.append("name", activity.name);
   if (activity.description) {
     form.append("description", activity.description);
