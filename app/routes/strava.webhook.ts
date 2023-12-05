@@ -64,11 +64,9 @@ const activitySchema = z.object({
   commute: z.boolean(),
   trainer: z.boolean(),
   type: z.string(),
-  upload_id: z.number(),
   elapsed_time: z.number(),
   start_date: z.string(),
   start_date_local: z.string(),
-  utc_offset: z.number(), // subtract this value from start_date_local to get the UTC time
 });
 
 // schema for the response to getting an activity's streams
