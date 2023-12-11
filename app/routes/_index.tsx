@@ -4,7 +4,16 @@ import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import IconOctocat from "~/ui/IconOctocat";
 import { useOptionalUser } from "~/utils";
 
-export const meta: MetaFunction = () => [{ title: "Strava Time Shift" }];
+export const meta: MetaFunction = () => [
+  {
+    title: "Strava Time Shift",
+  },
+  {
+    name: "description",
+    content:
+      "Automatically change the time of your weekday Strava activities to be outside of work hours.",
+  },
+];
 
 // loader that redirects apex to www, constructs strava auth url
 export function loader({ request }: LoaderFunctionArgs) {
