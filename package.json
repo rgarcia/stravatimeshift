@@ -26,6 +26,7 @@
     "/public/build"
   ],
   "dependencies": {
+    "@hookform/resolvers": "^3.3.2",
     "@prisma/client": "^4.16.2",
     "@remix-run/css-bundle": "^2.2.0",
     "@remix-run/node": "^2.2.0",
@@ -41,6 +42,8 @@
     "loops": "^0.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.49.2",
+    "remix-hook-form": "^3.2.3",
     "tiny-invariant": "^1.3.1",
     "ts-node": "^10.9.1",
     "tsx": "^4.1.1",
