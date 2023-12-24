@@ -45,15 +45,19 @@ export default function Dashboard() {
   }, [actionData]);
 
   return (
-    <section className="w-full h-screen bg-gradient-to-r from-gray-900 to-gray-700 text-white">
+    <section className="w-full h-full bg-gradient-to-r from-gray-900 to-gray-700 text-white">
       <header className="flex justify-between items-center px-6 py-4">
         <Link className="text-2xl font-bold text-orange-500" to="/">
           Strava Time Shift
         </Link>
         <nav className="flex gap-4">
-          <Link className="text-lg text-orange-500" to="/logout">
-            Log out
-          </Link>
+          <form method="post" action="/logout">
+            <button>
+              <span className="text-lg text-orange-500 cursor-pointer">
+                Log out
+              </span>
+            </button>
+          </form>
         </nav>
       </header>
       <main className="flex flex-col items-center justify-center gap-6 px-6 py-16">
