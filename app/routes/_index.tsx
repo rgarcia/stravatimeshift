@@ -52,7 +52,7 @@ export default function Index() {
   const navigate = useNavigate();
 
   return (
-    <section className="w-full h-screen bg-gradient-to-r from-gray-900 to-gray-700 text-white">
+    <section className="w-full h-full bg-gradient-to-r from-gray-900 to-gray-700 text-white">
       <header className="flex justify-between items-center px-6 py-4">
         <a className="text-2xl font-bold text-orange-500" href="/">
           Strava Time Shift
@@ -63,9 +63,13 @@ export default function Index() {
               <Link className="text-lg text-orange-500" to="/dashboard">
                 Dashboard
               </Link>
-              <Link className="text-lg text-orange-500" to="/logout">
-                Log out
-              </Link>
+              <form method="post" action="/logout">
+                <button>
+                  <span className="text-lg text-orange-500 cursor-pointer">
+                    Log out
+                  </span>
+                </button>
+              </form>
             </>
           ) : null}
         </nav>
