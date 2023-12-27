@@ -241,7 +241,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const upperBound = { hour: 17, minute: 0 };
   const startTimeLocal = new Date(activity.start_date_local);
   if (!isBetweenTimeBounds(startTimeLocal, lowerBound, upperBound)) {
-    console.log("not between time bounds, skipping");
+    console.log(
+      "not between time bounds, skipping",
+      startTimeLocal,
+      lowerBound,
+      upperBound,
+    );
     return new Response("", {
       status: 200,
     });
