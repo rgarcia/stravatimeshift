@@ -3,12 +3,17 @@ import axios, { AxiosError } from "axios";
 import { isAfter, isBefore, setHours, setMinutes } from "date-fns";
 import FormData from "form-data";
 import LoopsClient from "loops";
+import NodeCache from "node-cache";
 import z from "zod";
 
 import {
   getUserByStravaAthleteID,
   updateUserStravaTokens,
 } from "~/models/user.server";
+
+// strava sometimes sends the same activity twice, so we cache the activity ID so that we don't process it
+// more than once
+const activityIDCache = new NodeCache({ stdTTL: 600 }); // cache with a TTL of 10 mins
 
 // adapted from https://developers.strava.com/docs/webhookexample/
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -182,11 +187,15 @@ function isBetweenTimeBounds(
 export async function action({ request }: ActionFunctionArgs) {
   const body = await request.json();
   const webhook = webhookSchema.parse(body);
-  if (webhook.aspect_type !== "create") {
+  if (
+    webhook.aspect_type !== "create" ||
+    activityIDCache.get(webhook.object_id)
+  ) {
     return new Response("", {
       status: 200,
     });
   }
+  activityIDCache.set(webhook.object_id, true);
   console.log("received webhook", webhook);
 
   // get user by owner_id aka strava athlete id
