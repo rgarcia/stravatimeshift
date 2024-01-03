@@ -22,7 +22,7 @@ const logger = createLogger({
     format.splat(),
     format.json(),
   ),
-  defaultMeta: { service: "your-service-name" },
+  defaultMeta: { service: "stravatimeshift" },
   transports: [new transports.Console()],
 });
 
@@ -211,7 +211,10 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
   activityIDCache.set(webhook.object_id, true);
-  logger.info("received webhook", webhook);
+  logger.info("received webhook", {
+    ...webhook,
+    url: `https://www.strava.com/activities/${webhook.object_id}`,
+  });
 
   // get user by owner_id aka strava athlete id
   const user = await getUserByStravaAthleteID(webhook.owner_id);
