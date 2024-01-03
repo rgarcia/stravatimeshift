@@ -4,12 +4,27 @@ import { isAfter, isBefore, setHours, setMinutes } from "date-fns";
 import FormData from "form-data";
 import LoopsClient from "loops";
 import NodeCache from "node-cache";
+import { createLogger, format, transports } from "winston";
 import z from "zod";
 
 import {
   getUserByStravaAthleteID,
   updateUserStravaTokens,
 } from "~/models/user.server";
+
+const logger = createLogger({
+  level: "info",
+  format: format.combine(
+    format.timestamp({
+      format: "YYYY-MM-DD HH:mm:ss",
+    }),
+    format.errors({ stack: true }),
+    format.splat(),
+    format.json(),
+  ),
+  defaultMeta: { service: "your-service-name" },
+  transports: [new transports.Console()],
+});
 
 // strava sometimes sends the same activity twice, so we cache the activity ID so that we don't process it
 // more than once
@@ -196,7 +211,7 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   }
   activityIDCache.set(webhook.object_id, true);
-  console.log("received webhook", webhook);
+  logger.info("received webhook", webhook);
 
   // get user by owner_id aka strava athlete id
   const user = await getUserByStravaAthleteID(webhook.owner_id);
@@ -219,7 +234,6 @@ export async function action({ request }: ActionFunctionArgs) {
   );
   const { access_token, refresh_token } = refreshTokenResponse;
   await updateUserStravaTokens(user.id, access_token, refresh_token);
-  console.log("got new token", access_token);
 
   const headers = {
     Authorization: `Bearer ${access_token}`,
@@ -250,12 +264,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const upperBound = { hour: 17, minute: 0 };
   const startTimeLocal = new Date(activity.start_date_local);
   if (!isBetweenTimeBounds(startTimeLocal, lowerBound, upperBound)) {
-    console.log(
-      "not between time bounds, skipping",
+    logger.info("not between time bounds, skipping", {
       startTimeLocal,
       lowerBound,
       upperBound,
-    );
+    });
     return new Response("", {
       status: 200,
     });
@@ -272,7 +285,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const endTimeLocal = new Date(
     startTimeLocal.getTime() + elapsedTimeInSeconds * 1000,
   );
-  console.log("start and end time:\t", startTimeLocal, endTimeLocal);
+  logger.info("start and end time", { startTimeLocal, endTimeLocal });
   // pick a new end time that is a random time between (lowerBound-10 minutes) and (upperBound-1 minutes)
   const lowerBoundMinusTenMinutes = setMinutes(
     setHours(startTimeLocal, lowerBound.hour),
@@ -297,7 +310,10 @@ export async function action({ request }: ActionFunctionArgs) {
     startTimeLocal,
   );
 
-  console.log("new start and end time:\t", newStartTimeLocal, newEndTimeLocal);
+  logger.info("new start and end time:", {
+    newStartTimeLocal,
+    newEndTimeLocal,
+  });
 
   // get all activity streams https://www.strava.com/api/v3/activities/10303000184/streams\?keys=latlng,altitude,cadence,distance,heartrate,moving,watts,temp,time
   const streams = organizeStreamData(
@@ -415,7 +431,7 @@ export async function action({ request }: ActionFunctionArgs) {
     ).data,
   );
 
-  console.log("upload response", uploadResponse);
+  logger.info("upload started");
 
   // return a 200 immediately but continue performing some logic
   setTimeout(async () => {
@@ -423,7 +439,6 @@ export async function action({ request }: ActionFunctionArgs) {
     let uploadStatus = uploadResponse.status;
     let activityID = uploadResponse.activity_id;
     while (uploadStatus !== "Your activity is ready.") {
-      console.log("waiting for upload to complete");
       await new Promise((resolve) => setTimeout(resolve, 5000));
       const uploadStatusResponse = uploadResponseSchema.parse(
         (
@@ -439,12 +454,11 @@ export async function action({ request }: ActionFunctionArgs) {
       activityID = uploadStatusResponse.activity_id;
     }
 
-    console.log(
-      "upload complete",
-      `https://www.strava.com/activities/${activityID}`,
-    );
+    logger.info("upload complete", {
+      url: `https://www.strava.com/activities/${activityID}`,
+    });
     if (!user.email) {
-      console.log("no email, skipping");
+      logger.info("no user email, skipping");
       return;
     }
     const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
@@ -465,7 +479,7 @@ export async function action({ request }: ActionFunctionArgs) {
       user.email,
       dataVariables,
     );
-    console.log("sent email", resp);
+    logger.info("sent email", resp);
   }, 100);
   return new Response("", {
     status: 200,
