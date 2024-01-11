@@ -413,9 +413,9 @@ export async function action({ request }: ActionFunctionArgs) {
     filename: `${activity.id}-stravatimeshift.gpx`,
     contentType: "application/gpx+xml",
   });
-  if (activity.name === "Afternoon Ride" || activity.name === "Lunch Ride") {
-    activity.name = "Morning Ride";
-  }
+  // replace "Afternoon" and "Lunch" with "Morning"
+  activity.name = activity.name.replace("Afternoon", "Morning");
+  activity.name = activity.name.replace("Lunch", "Morning");
   form.append("name", activity.name);
   if (activity.description) {
     form.append("description", activity.description);
